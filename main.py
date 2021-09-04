@@ -1,43 +1,47 @@
 from fastapi import FastAPI
-from catboost import CatBoostRegressor
 from fastapi.middleware.cors import CORSMiddleware
-template = [616.2, 104.7, 104, 285000, 101.4, 98.5, 107, 100, 100.1, 100,
-        42500, 100, 130000, 102, 95400, 98, 62100, 190, 95, 6.5, 2.1]
-cbr = CatBoostRegressor().load_model('model1.cbm')
+from pickle import load
+from sklearn.linear_model import LinearRegression
+
+income_coefficients = {
+    "ndfl": 0.18,
+    "npp": 0.14,
+    "total": 1.00
+}
+spending_coefficients = {
+    "gov": 0.0342,
+    "def": 0.0004,
+    "sec": 0.0176,
+    "econ": 0.1795,
+    "comm": 0.0810,
+    "edu": 0.2025,
+    "cult": 0.0230,
+    "med": 0.1049,
+    "soc": 0.2904,
+    "sport": 0.0071,
+    "media": 0.0021,
+    "debt": 0.0210,
+    "cross": 0.0356,
+    "total": 1.0000
+}
+with open('income_reg.pkl', 'rb') as f:
+    model: LinearRegression = load(f)
 app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=['*'])
 
 
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
-
-
 @app.get("/results")
-def results(param1: float, param2: float, param3: float, param4: float, param5: float, param6: float, param7: float):
-    form = template.copy()
-    form[0] = param1
-    form[1] = param2
-    form[2] = param3
-    form[3] = param4
-    form[4] = param5
-    form[5] = param6
-    form[6] = param7
-    print(form)
-    try:
-        cbr.predict(form)
-    except Exception as e:
-        print(e)
-        return {}
-    return {
-        "ndfl": cbr.predict(form),
-        "npp": "2001",
-        "total": "500"
-    }
+def results(population: float, index1: float, index2: float, index_cde: float, index_c: float,
+            index_d: float, index_e: float, ingex_f: float, alco: float, inv2: float, roz1: float,
+            salary: float, tax: float, import2: float, unemp1: float, unemp2: float, forecast: float):
+    prediction = model.predict([[
+        population, index1, index2, index_cde, index_c, index_d, index_e, ingex_f, alco,
+        inv2, roz1, salary, tax, import2, unemp1, unemp2, forecast
+    ]])[0][0]
+    return {key: value * prediction for (key, value) in income_coefficients.items()}
+
 
 @app.get("/spending")
 def spending(debt: float, deficit: float, total: float):
-    return {
-        "total": "12345"
-    }
-
+    budget = total + debt + deficit
+    return {key: value * budget for (key, value) in spending_coefficients.items()}
