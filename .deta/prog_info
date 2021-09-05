@@ -1,1 +1,0 @@
-{"id":"f1f934ee-567a-401b-8734-f034bdc00129","space":10212,"runtime":"python3.7","name":"5-deneg-api","path":"uoend3","project":"c0ksiok5","account":"144798365827","region":"ap-southeast-1","deps":["fastapi"],"envs":null,"public":true,"log_level":"debug","cron":""}
